@@ -1,1 +1,0 @@
-Take pictures with a raspberry pi 3 model b using a door sensor, motion sensor, and raspberry pi camera
