@@ -23,8 +23,8 @@ table = config['catpics']['picture_db_table']
 
 subject = "Catarazzi cat alert"
 date = datetime.datetime.today().isoformat()
-bodyopen = "Ali Baba opened the cave! Time of openening:"
-bodyclosed = "Ali Baba closed the cave! Time of closing:"
+bodyopen = "Motion detected in the cave! Time of appearance:"
+bodyclosed = "Motion stopped in the cave! Time of vanishing:"
 bodyopen += "\n" + date
 bodyclosed += "\n" + date
 
@@ -44,8 +44,8 @@ def check_woosh():
     If so, take a picture and send it.
     """
 
-    isOpen = None
-    oldIsOpen = None
+    old_state = None
+    current_state = None
 
     while True:
         old_state = current_state

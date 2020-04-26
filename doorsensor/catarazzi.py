@@ -22,7 +22,7 @@ def click(closed_or_open, directory=".", db='cats.db', picture_db_table='pics', 
     picturename = filename + '.jpg'
     print(directory)
     picturepath = os.path.join(directory, picturename)
-    picture_command = ['raspistill', '--vflip', '-o', picturepath]
+    picture_command = ['raspistill', '-o', picturepath]
     test_command = ['touch', picturepath]
     if testing:
         print("will test command", test_command)
