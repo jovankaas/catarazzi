@@ -10,8 +10,7 @@ import sql3 as sql
 import os
 import configparser
 
-
-def click(closed_or_open, directory=".", db='cats.db', picture_db_table='pics'):
+def click(closed_or_open, directory=".", db='cats.db', picture_db_table='pics', testing=False):
     """
     Take a snapshot.
     Save to date time of now into database.
@@ -23,12 +22,14 @@ def click(closed_or_open, directory=".", db='cats.db', picture_db_table='pics'):
     picturename = filename + '.jpg'
     print(directory)
     picturepath = os.path.join(directory, picturename)
-    picture_command = ['raspistill', '-o', picturepath]
+    picture_command = ['raspistill', '--vflip', '-o', picturepath]
     test_command = ['touch', picturepath]
-    print("will execute command", picture_command)
-    print("will test command", test_command)
-    #subprocess.Popen(picture_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid)
-    subprocess.Popen(test_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid)
+    if testing:
+        print("will test command", test_command)
+        subprocess.Popen(test_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid)
+    else:
+        print("will execute command", picture_command)
+        subprocess.Popen(picture_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid)
     values = {}
     # door open: 0 = false, 1 = true ==> 1 door open, 0 door closed
     door_open = 0 if 'close' in closed_or_open else 1
@@ -41,7 +42,7 @@ def click(closed_or_open, directory=".", db='cats.db', picture_db_table='pics'):
     textpath = os.path.join(directory, textname)
     with open(textpath, 'w') as textfile:
         textfile.write("Cat entered or left:" + "door " + closed_or_open + "\nDate and time: " + date + "\n" + picturepath + '\n')
-    sql.dict_to_db(values, os.path.join(directory, picture_db), picture_db_table)
+    sql.dict_to_db(values, os.path.join(directory, db), picture_db_table)
 
     return picturepath
 

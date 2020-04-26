@@ -10,8 +10,15 @@ import signal
 
 import catarazzi
 import penny_caught_you
+import configparser
+import datetime
 
-cat_picture_dir = 'cat_alerts'
+# read settings from config file
+config = configparser.ConfigParser()
+config.read('catarazzi_settings.ini')
+cat_picture_dir = config['catpics']['picture_dir']
+db = config['catpics']['picture_db']
+table = config['catpics']['picture_db_table']
 
 subject = "Catarazzi cat alert"
 date = datetime.datetime.today().isoformat()
@@ -47,19 +54,19 @@ def check_sesam():
             print "Door is open!"
             print "isOpen is", isOpen
             print "oldIsOpen is", oldIsOpen
-            picturepath = catarazzi.click('opened', cat_picture_dir)
+            picturepath = catarazzi.click('opened', cat_picture_dir, db=db, picture_db_table=table)
             # you could send an email here but this is now done separately
             #penny_caught_you.send_email_with_attachment(receiver_email, subject, bodyopen, picturepath)
         elif (isOpen != oldIsOpen):
             print "Door is closed!"
             print "isOpen is", isOpen
             print "oldIsOpen is", oldIsOpen
-            picturepath = catarazzi.click('closed', cat_picture_dir)
+            picturepath = catarazzi.click('closed', cat_picture_dir, db=db, picture_db_table=table)
             # you could send an email here but this is now done separately
             #penny_caught_you.send_email_with_attachment(receiver_email, subject, bodyclosed, picturepath)
         time.sleep(0.1)
 
-if __name___ == "__main__":
+if __name__ == "__main__":
 
 
     # Source:

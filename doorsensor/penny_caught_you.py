@@ -16,13 +16,14 @@ import datetime
 import subprocess
 import sql3 as sql
 import os
+import sys
 import configparser
 
 # read email addresses and passwords from config file
 config = configparser.ConfigParser()
 config.read('catarazzi_settings.ini')
 sender_email = config['sender']['email'] # e.g. myemail@gmail.com
-password = config['sender']['password'] # e.g. myemailpasswd
+sender_password = config['sender']['password'] # e.g. myemailpasswd
 smtp_server = config['sender']['smtp'] # e.g. smtp.gmail.com
 port = config['sender']['smtp_port'] # 465 for SSL
 receiver_email = config['recipient']['email'] # e.g. youremail@gmail.com
@@ -31,7 +32,7 @@ db = config['catpics']['picture_db']
 table = config['catpics']['picture_db_table']
 
 
-def send_email_with_attachment(receiver_email, subject, body, filename, sender_email=sender_email, password=sender_passwd):
+def send_email_with_attachment(receiver_email, subject, body, filename, sender_email=sender_email, password=sender_password):
     """
     Send an email from sender_email to receiver_email with the subject subject and text body.
     Attach the file filename to the email.
@@ -51,7 +52,7 @@ def send_email_with_attachment(receiver_email, subject, body, filename, sender_e
 
     # Open PDF file in binary mode
     with open(filename, "rb") as attachment:
-        print("attaching file...")
+        print("attaching file " + filename + "...")
         # Add file as application/octet-stream
         # Email client can usually download this automatically as attachment
         part = MIMEBase("application", "octet-stream")
@@ -63,7 +64,8 @@ def send_email_with_attachment(receiver_email, subject, body, filename, sender_e
     # Add header as key/value pair to attachment part
     part.add_header(
         "Content-Disposition",
-        f"attachment; filename= {filename}",
+        "attachment; filename= " + os.path.basename(filename),
+        #"attachment; filename= {filename}",
     )
 
     # Add attachment to message and convert message to string
@@ -75,9 +77,9 @@ def send_email_with_attachment(receiver_email, subject, body, filename, sender_e
     # Log in to server using secure context and send email
     context = ssl.create_default_context()
     with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
-        print("logging into mail server...")
-        server.login(sender_email, password)
-        print("sending email...")
+        print("logging into mail server " + smtp_server + "...")
+        server.login(sender_email, sender_password)
+        print("sending email from " + sender_email + " to " + receiver_email + "...")
         server.sendmail(sender_email, receiver_email, text)
         print("Sent email.")
 
@@ -114,6 +116,7 @@ if __name__ == "__main__":
 
 
     testing = False
+    # testing = True
     if testing:
         subject = "Catarazzi cat alert -- testing"
         date = datetime.datetime.today().isoformat()
@@ -136,16 +139,17 @@ if __name__ == "__main__":
         date = picture['date']
         body = bodyopen if picture['door_open'] else bodyclosed
         #date = datetime.datetime.today().isoformat()
-        bodyopen += "\n" + date
-        bodyclosed += "\n" + date
+        body += "\n" + date.replace('T', ' ')
         send_email_with_attachment(receiver_email, subject, body, picturepath)
         # update dictionary to be written to db: mail has been sent
-        write_to_db.append(picture.update({'sent_email': 1}))
+        picture.update({'sent_email': 1})
+        write_to_db.append(picture)
 
     # write that email has been sent to database
     for d in write_to_db:
         print("writing dict to db")
-        sql.dict_to_db(d,  os.path.join(cat_picture_dir, db), table)
+        print(d.keys())
+        sql.dict_to_db(d,  os.path.join(cat_picture_dir, db), table, verbose=True)
 
 
 
