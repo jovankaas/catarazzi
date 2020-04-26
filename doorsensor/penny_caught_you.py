@@ -131,8 +131,8 @@ if __name__ == "__main__":
 
 
     subject = "Catarazzi cat alert"
-    bodyopen = "Ali Baba opened the cave! Time of openening:"
-    bodyclosed = "Ali Baba closed the cave! Time of closing:"
+    bodyopen = "Ali Baba opened the cave! Time of picture:"
+    bodyclosed = "Ali Baba closed the cave! Time of picture:"
     cat_picture_dir = directory
     # find any new pictures: emails not sent
     newpics = new_pictures(cat_picture_dir)
@@ -147,12 +147,9 @@ if __name__ == "__main__":
         # update dictionary to be written to db: mail has been sent
         picture.update({'sent_email': 1})
         write_to_db.append(picture)
+        print("writing dict to db...")
+        sql.dict_to_db(picture, os.path.join(cat_picture_dir, db), table) #, verbose=True)
 
-    # write that email has been sent to database
-    for d in write_to_db:
-        print("writing dict to db")
-        print(d.keys())
-        sql.dict_to_db(d,  os.path.join(cat_picture_dir, db), table, verbose=True)
 
 
 
