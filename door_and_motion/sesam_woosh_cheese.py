@@ -50,28 +50,45 @@ def check_sesam_woosh():
     current_state = 0
 
 
+    msg = 'opened' # door is always 'open'
     while True:
-        oldIsOpen = isOpen
+        # oldIsOpen = isOpen
         isOpen = GPIO.input(DOOR_SENSOR_PIN)
-        msg = 'opened' if isOpen else 'closed'
-        print("Door is currently " + msg)
-        print("Checking for change in door state...")
-        if isOpen != oldIsOpen:
+        #msg = 'opened' if isOpen else 'closed'
+        # print("Door is currently " + msg)
+        # print("Checking for change in door state...")
+        # actually waiting for door sensor to close = logical 0
+        print("Waiting for door to open...")
+        #if isOpen != oldIsOpen:
+        if isOpen == 0: # catflap moved past sensor! door sensor "closed"
             # State change! Start detecting motion
             # register whether door opened or closed:
-            if isOpen:
-                print "Door is open! Was closed before."
-                catarazzi_message = 'opened'
-            else:
-                print "Door is closed! Was opened before."
-                catarazzi_message = 'closed'
+            catarazzi_message = 'opened' # door is always 'open'
+            #if isOpen:
+            #    print "Door is open! Was closed before."
+            #    catarazzi_message = 'opened'
+            #else:
+            #    print "Door is closed! Was opened before."
+            #    catarazzi_message = 'closed'
             # start detecting motion for 20 seconds
             t_detect = 20
             t_end = time.time() + t_detect
+            picturepath = catarazzi.click(catarazzi_message, cat_picture_dir, db=db, picture_db_table=table)
             while time.time() < t_end:
                 old_state = current_state
                 current_state = GPIO.input(pir_sensor)
+                catarazzi_message = 'motion'
+                print("will detect motion for " + str(t_end - time.time()) + " more seconds")
+                # take pictures first 4 seconds
+                if int((t_end - time.time())) > (t_detect - 4):
+                    print("Take picture anyway!")
+                    picturepath = catarazzi.click(catarazzi_message, cat_picture_dir, db=db, picture_db_table=table)
+                    time.sleep(0.5)
+                    continue
+
+                # then check if motion is detected
                 if current_state == 1 and (current_state != old_state):
+
                     # PIR is detecting movement!
                     print("GPIO pin %s is %s" % (pir_sensor, current_state))
                     # Check if this is the first time movement was
@@ -79,6 +96,9 @@ def check_sesam_woosh():
                     if current_state != old_state:
                         print('Motion detected!')
                     picturepath = catarazzi.click(catarazzi_message, cat_picture_dir, db=db, picture_db_table=table)
+                    # reset to no motion detected, else you get 20 pictures in a row...?
+                    # print("Resetting state to no motion detected")
+                    # current_state = 0 # reset to no motion
                 elif (current_state != old_state):
                     # PIR is not detecting movement.
                     # Again check if this is the first time movement
@@ -90,11 +110,13 @@ def check_sesam_woosh():
                         print("cat still here")
                     else:
                         print("still no cat")
-                    print("time is " + str(time.time()) + " and end time is " + str(t_end) + ": will detect motion for " + str(t_end - time.time()) + " more seconds")
-                if int((t_end - time.time())) % 5 == 0:
-                    print("Resetting state to no motion detected")
-                    current_state = 0 # reset to no motion
-                time.sleep(1)
+
+                # take time between checking for motion
+                time.sleep(0.5)
+            print("finished detecting motion. start waiting for door...")
+            # oldIsOpen = 1 # set to logical 1 meaning open: should check for door to 'close' or when flap passes sensor --> logical 0
+
+        # sleep between checking door sensor
         time.sleep(0.1)
 
 

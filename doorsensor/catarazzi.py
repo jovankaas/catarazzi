@@ -20,9 +20,12 @@ def click(closed_or_open, directory=".", db='cats.db', picture_db_table='pics', 
     filename = filename.replace('-', '') # no dashes
     filename = filename.replace(':', '') # no colons
     picturename = filename + '.jpg'
-    print(directory)
     picturepath = os.path.join(directory, picturename)
-    picture_command = ['raspistill', '-o', picturepath]
+    # also possible: --rotation 270 but this makes image dark
+    # or: --exposure sports
+    # both night and sports take only 0.7 seconds for me
+    # the trick is timeout 1 to make it faster (otherwise 5 seconds)
+    picture_command = ['raspistill','--timeout', '1', '--exposure', 'night', '-o', picturepath]
     test_command = ['touch', picturepath]
     if testing:
         print("will test command", test_command)
@@ -32,7 +35,10 @@ def click(closed_or_open, directory=".", db='cats.db', picture_db_table='pics', 
         subprocess.Popen(picture_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid)
     values = {}
     # door open: 0 = false, 1 = true ==> 1 door open, 0 door closed
-    door_open = 0 if 'close' in closed_or_open else 1
+    if 'motion' in closed_or_open:
+        door_open = 2
+    else:
+        door_open = 0 if 'close' in closed_or_open else 1
     values["muis"] = 2 # undetermined until analyzed
     values["sent_email"] = 0 # will do after
     values['door_open'] = door_open
