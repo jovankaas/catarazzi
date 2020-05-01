@@ -2,6 +2,7 @@ import RPi.GPIO as GPIO
 import time
 import sys
 import signal
+import datetime
 
 
 # Source:
@@ -31,15 +32,24 @@ GPIO.setup(DOOR_SENSOR_PIN, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 # Set the cleanup handler for when user hits Ctrl-C to exit
 signal.signal(signal.SIGINT, cleanup)
 
+def date_time_no_float():
+    """
+    Return date and time now in isoformat up to the float:
+    no fractions of seconds.
+    Replace T with space.
+    """
+    iso = datetime.datetime.isoformat(datetime.datetime.now())
+    return iso[:iso.index('.')].replace('T', ' ')
+
 while True: 
     oldIsOpen = isOpen 
     isOpen = GPIO.input(DOOR_SENSOR_PIN)
     if (isOpen and (isOpen != oldIsOpen)):
-        print "Door is open!"
-        print "isOpen is", isOpen
-        print "oldIsOpen is", oldIsOpen
+        print "Door is open! Time: ", date_time_no_float()
+        print "pin value is", isOpen
+        print "old pin value is", oldIsOpen
     elif (isOpen != oldIsOpen):
-        print "Door is closed!"
-        print "isOpen is", isOpen
-        print "oldIsOpen is", oldIsOpen
+        print "Door is closed! Time: ", date_time_no_float()
+        print "pin value is", isOpen
+        print "old pin value is", oldIsOpen
     time.sleep(0.1)

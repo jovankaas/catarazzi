@@ -21,12 +21,24 @@ cat_picture_dir = config['catpics']['picture_dir']
 db = config['catpics']['picture_db']
 table = config['catpics']['picture_db_table']
 
+def date_time_no_float():
+    """
+    Return date and time now in isoformat up to the float:
+    no fractions of seconds.
+    Replace T with space.
+    """
+    iso = datetime.datetime.isoformat(datetime.datetime.now())
+    return iso[:iso.index('.')].replace('T', ' ')
+
+
 subject = "Catarazzi cat alert"
-date = datetime.datetime.today().isoformat()
+date = date_time_no_float()
 bodyopen = "Ali Baba opened the cave! Time of openening:"
 bodyclosed = "Ali Baba closed the cave! Time of closing:"
 bodyopen += "\n" + date
 bodyclosed += "\n" + date
+
+testing = True
 
 
 
@@ -58,12 +70,19 @@ def check_sesam_woosh():
         # print("Door is currently " + msg)
         # print("Checking for change in door state...")
         # actually waiting for door sensor to close = logical 0
-        print("Waiting for door to open...")
+        #print("Waiting for door to open...")
         #if isOpen != oldIsOpen:
-        if isOpen == 0: # catflap moved past sensor! door sensor "closed"
+        #if isOpen == 0: # catflap moved past sensor! door sensor "closed"
+        if isOpen: # catflap did not move
+            #print("Door did not move")
+            #time.sleep(0.1)
+            pass
+        else: # door sensor closed
             # State change! Start detecting motion
             # register whether door opened or closed:
             catarazzi_message = 'opened' # door is always 'open'
+            print()
+            print("Door opened at " + date_time_no_float())
             #if isOpen:
             #    print "Door is open! Was closed before."
             #    catarazzi_message = 'opened'
@@ -73,16 +92,21 @@ def check_sesam_woosh():
             # start detecting motion for 20 seconds
             t_detect = 20
             t_end = time.time() + t_detect
-            picturepath = catarazzi.click(catarazzi_message, cat_picture_dir, db=db, picture_db_table=table)
+            if not testing:
+                picturepath = catarazzi.click(catarazzi_message, cat_picture_dir, db=db, picture_db_table=table)
+            else:
+                print("Snap! First snapshot: " + str(date_time_no_float()))
             while time.time() < t_end:
                 old_state = current_state
                 current_state = GPIO.input(pir_sensor)
                 catarazzi_message = 'motion'
-                print("will detect motion for " + str(t_end - time.time()) + " more seconds")
+                # print("will detect motion for " + str(t_end - time.time()) + " more seconds")
                 # take pictures first 4 seconds
                 if int((t_end - time.time())) > (t_detect - 4):
-                    print("Take picture anyway!")
-                    picturepath = catarazzi.click(catarazzi_message, cat_picture_dir, db=db, picture_db_table=table)
+                    # print("Take picture anyway!")
+                    if not testing:
+                        picturepath = catarazzi.click(catarazzi_message, cat_picture_dir, db=db, picture_db_table=table)
+                    print("Snap! First four seconds: " + str(date_time_no_float()))
                     time.sleep(0.5)
                     continue
 
@@ -95,7 +119,9 @@ def check_sesam_woosh():
                     # detected and print a message!
                     if current_state != old_state:
                         print('Motion detected!')
-                    picturepath = catarazzi.click(catarazzi_message, cat_picture_dir, db=db, picture_db_table=table)
+                    if not testing:
+                        picturepath = catarazzi.click(catarazzi_message, cat_picture_dir, db=db, picture_db_table=table)
+                    print("Snap! Motion detected: " + str(date_time_no_float()))
                     # reset to no motion detected, else you get 20 pictures in a row...?
                     # print("Resetting state to no motion detected")
                     # current_state = 0 # reset to no motion
@@ -106,10 +132,11 @@ def check_sesam_woosh():
                     # if old_state == 0:
                     print('Motion ended!')
                 else:
-                    if current_state == 1:
-                        print("cat still here")
-                    else:
-                        print("still no cat")
+                    pass
+                    # if current_state == 1:
+                        # print("cat still here")
+                    # else:
+                        # print("still no cat")
 
                 # take time between checking for motion
                 time.sleep(0.5)
@@ -122,6 +149,13 @@ def check_sesam_woosh():
 
 
 if __name__ == "__main__":
+
+    for arg in sys.argv:
+        if 'test' in arg:
+            testing = True
+            print("Just testing: no pictures taken, no writing to database.")
+        else:
+            testing = False
 
 
     # Source:
