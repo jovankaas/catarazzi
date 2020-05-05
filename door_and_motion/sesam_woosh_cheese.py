@@ -31,12 +31,12 @@ def date_time_no_float():
     return iso[:iso.index('.')].replace('T', ' ')
 
 
-subject = "Catarazzi cat alert"
-date = date_time_no_float()
-bodyopen = "Ali Baba opened the cave! Time of openening:"
-bodyclosed = "Ali Baba closed the cave! Time of closing:"
-bodyopen += "\n" + date
-bodyclosed += "\n" + date
+# subject = "Catarazzi cat alert"
+# date = date_time_no_float()
+# bodyopen = "Ali Baba opened the cave! Time of openening:"
+# bodyclosed = "Ali Baba closed the cave! Time of closing:"
+# bodyopen += "\n" + date
+# bodyclosed += "\n" + date
 
 testing = True
 
@@ -93,6 +93,7 @@ def check_sesam_woosh():
             t_detect = 20
             t_end = time.time() + t_detect
             if not testing:
+                time.sleep(2) # delay. cat does not enter so swiftly.
                 picturepath = catarazzi.click(catarazzi_message, cat_picture_dir, db=db, picture_db_table=table)
             else:
                 print("Snap! First snapshot: " + str(date_time_no_float()))
@@ -102,12 +103,12 @@ def check_sesam_woosh():
                 catarazzi_message = 'motion'
                 # print("will detect motion for " + str(t_end - time.time()) + " more seconds")
                 # take pictures first 4 seconds
-                if int((t_end - time.time())) > (t_detect - 4):
+                if int((t_end - time.time())) > (t_detect - 6):
                     # print("Take picture anyway!")
                     if not testing:
                         picturepath = catarazzi.click(catarazzi_message, cat_picture_dir, db=db, picture_db_table=table)
                     print("Snap! First four seconds: " + str(date_time_no_float()))
-                    time.sleep(0.5)
+                    time.sleep(1)
                     continue
 
                 # then check if motion is detected

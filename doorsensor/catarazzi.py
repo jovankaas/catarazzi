@@ -44,10 +44,10 @@ def click(closed_or_open, directory=".", db='cats.db', picture_db_table='pics', 
     values['door_open'] = door_open
     values['picture'] = picturepath
     values['date'] = date
-    textname = filename + '.txt'
-    textpath = os.path.join(directory, textname)
-    with open(textpath, 'w') as textfile:
-        textfile.write("Cat entered or left:" + "door " + closed_or_open + "\nDate and time: " + date + "\n" + picturepath + '\n')
+    # textname = filename + '.txt'
+    # textpath = os.path.join(directory, textname)
+    # with open(textpath, 'w') as textfile:
+    #     textfile.write("Cat entered or left:" + "door " + closed_or_open + "\nDate and time: " + date + "\n" + picturepath + '\n')
     sql.dict_to_db(values, os.path.join(directory, db), picture_db_table)
 
     return picturepath
