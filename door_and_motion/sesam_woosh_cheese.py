@@ -102,13 +102,13 @@ def check_sesam_woosh():
                 current_state = GPIO.input(pir_sensor)
                 catarazzi_message = 'motion'
                 # print("will detect motion for " + str(t_end - time.time()) + " more seconds")
-                # take pictures first 4 seconds
-                if int((t_end - time.time())) > (t_detect - 6):
+                # take pictures first 8 seconds every 2 seconds
+                if int((t_end - time.time())) > (t_detect - 10):
                     # print("Take picture anyway!")
                     if not testing:
                         picturepath = catarazzi.click(catarazzi_message, cat_picture_dir, db=db, picture_db_table=table)
                     print("Snap! First four seconds: " + str(date_time_no_float()))
-                    time.sleep(1)
+                    time.sleep(2)
                     continue
 
                 # then check if motion is detected
