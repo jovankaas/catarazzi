@@ -7,6 +7,7 @@ import RPi.GPIO as GPIO
 import time
 import sys
 import signal
+from picamera import PiCamera
 
 import catarazzi
 import penny_caught_you
@@ -50,7 +51,7 @@ def cleanup(signal, frame):
     sys.exit(0)
 
 
-def check_sesam_woosh():
+def check_sesam_woosh(led=None):
     """
     Check if door status changed.
     If it did, take a picture and send it.
@@ -63,6 +64,10 @@ def check_sesam_woosh():
 
 
     msg = 'opened' # door is always 'open'
+    first_n_pictures = 3
+
+    camera = PiCamera()
+    camera.rotation = 180
     while True:
         # oldIsOpen = isOpen
         isOpen = GPIO.input(DOOR_SENSOR_PIN)
@@ -73,6 +78,7 @@ def check_sesam_woosh():
         #print("Waiting for door to open...")
         #if isOpen != oldIsOpen:
         #if isOpen == 0: # catflap moved past sensor! door sensor "closed"
+        # isOpen = False # for testing
         if isOpen: # catflap did not move
             #print("Door did not move")
             #time.sleep(0.1)
@@ -81,6 +87,8 @@ def check_sesam_woosh():
             # State change! Start detecting motion
             # register whether door opened or closed:
             catarazzi_message = 'opened' # door is always 'open'
+            # switch on the leds for a picture
+            GPIO.output(led, GPIO.HIGH)
             print()
             print("Door opened at " + date_time_no_float())
             #if isOpen:
@@ -90,26 +98,29 @@ def check_sesam_woosh():
             #    print "Door is closed! Was opened before."
             #    catarazzi_message = 'closed'
             # start detecting motion for 20 seconds
-            t_detect = 20
-            t_end = time.time() + t_detect
             if not testing:
-                time.sleep(2) # delay. cat does not enter so swiftly.
-                picturepath = catarazzi.click(catarazzi_message, cat_picture_dir, db=db, picture_db_table=table)
+                for n_pic in range(first_n_pictures):
+                    print("Snap! First four seconds: " + str(date_time_no_float()))
+                    time.sleep(2) # delay. cat does not enter so swiftly.
+                    picturepath = catarazzi.click(catarazzi_message, cat_picture_dir, db=db, picture_db_table=table, camera=camera)
+                    time.sleep(4)
             else:
                 print("Snap! First snapshot: " + str(date_time_no_float()))
+            t_detect = 20
+            t_end = time.time() + t_detect
             while time.time() < t_end:
                 old_state = current_state
                 current_state = GPIO.input(pir_sensor)
                 catarazzi_message = 'motion'
                 # print("will detect motion for " + str(t_end - time.time()) + " more seconds")
                 # take pictures first 8 seconds every 2 seconds
-                if int((t_end - time.time())) > (t_detect - 10):
-                    # print("Take picture anyway!")
-                    if not testing:
-                        picturepath = catarazzi.click(catarazzi_message, cat_picture_dir, db=db, picture_db_table=table)
-                    print("Snap! First four seconds: " + str(date_time_no_float()))
-                    time.sleep(2)
-                    continue
+                # if int((t_end - time.time())) > (t_detect - 10):
+                #     # print("Take picture anyway!")
+                #     if not testing:
+                #         picturepath = catarazzi.click(catarazzi_message, cat_picture_dir, db=db, picture_db_table=table, camera=camera)
+                #     print("Snap! First four seconds: " + str(date_time_no_float()))
+                #     time.sleep(2)
+                #     continue
 
                 # then check if motion is detected
                 if current_state == 1 and (current_state != old_state):
@@ -121,7 +132,7 @@ def check_sesam_woosh():
                     if current_state != old_state:
                         print('Motion detected!')
                     if not testing:
-                        picturepath = catarazzi.click(catarazzi_message, cat_picture_dir, db=db, picture_db_table=table)
+                        picturepath = catarazzi.click(catarazzi_message, cat_picture_dir, db=db, picture_db_table=table, camera=camera)
                     print("Snap! Motion detected: " + str(date_time_no_float()))
                     # reset to no motion detected, else you get 20 pictures in a row...?
                     # print("Resetting state to no motion detected")
@@ -142,6 +153,10 @@ def check_sesam_woosh():
                 # take time between checking for motion
                 time.sleep(0.5)
             print("finished detecting motion. start waiting for door...")
+
+            # switch off the leds again
+            GPIO.output(led, GPIO.LOW)
+
             # oldIsOpen = 1 # set to logical 1 meaning open: should check for door to 'close' or when flap passes sensor --> logical 0
 
         # sleep between checking door sensor
@@ -186,19 +201,27 @@ if __name__ == "__main__":
     # https://pinout.xyz/#
     pir_sensor = 23
 
+    # leds ring for noir camera
+    # it has 4 wires, 2 ground, 1 5V, and one GPIO:
+    LED = 16
 
     # Set up the door sensor pin.
     GPIO.setup(DOOR_SENSOR_PIN, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 
     # Set up the motion sensor pin
-    # GPIO.setup(pir_sensor, GPIO.IN)
     GPIO.setup(pir_sensor, GPIO.IN)
     # , pull_up_down = GPIO.PUD_UP)
+
+
+    # Set up the LED pin:
+    GPIO.setup(LED, GPIO.OUT)
+    # start with leds off:
+    GPIO.output(LED, GPIO.LOW)
 
 
     # Set the cleanup handler for when user hits Ctrl-C to exit
     signal.signal(signal.SIGINT, cleanup)
 
 
-    check_sesam_woosh()
+    check_sesam_woosh(led=LED)
 

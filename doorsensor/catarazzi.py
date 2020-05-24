@@ -8,9 +8,10 @@ import subprocess
 import datetime
 import sql3 as sql
 import os
+import time
 import configparser
 
-def click(closed_or_open, directory=".", db='cats.db', picture_db_table='pics', testing=False):
+def click(closed_or_open, directory=".", db='cats.db', picture_db_table='pics', testing=False, camera=None):
     """
     Take a snapshot.
     Save to date time of now into database.
@@ -25,14 +26,20 @@ def click(closed_or_open, directory=".", db='cats.db', picture_db_table='pics', 
     # or: --exposure sports
     # both night and sports take only 0.7 seconds for me
     # the trick is timeout 1 to make it faster (otherwise 5 seconds)
-    picture_command = ['raspistill','--timeout', '1', '--exposure', 'night', '-o', picturepath]
-    test_command = ['touch', picturepath]
-    if testing:
-        print("will test command", test_command)
-        subprocess.Popen(test_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid)
+    if camera != None:
+        localtime = time.asctime( time.localtime(time.time()) )
+        camera.annotate_text=localtime
+        print("Capturing image to " + picturepath)
+        camera.capture(picturepath)
     else:
-        print("will execute command", picture_command)
-        subprocess.Popen(picture_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid)
+        picture_command = ['raspistill','--timeout', '1', '--exposure', 'night', '-o', picturepath]
+        test_command = ['touch', picturepath]
+        if testing:
+            print("will test command", test_command)
+            subprocess.Popen(test_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid)
+        else:
+            print("will execute command", picture_command)
+            subprocess.Popen(picture_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid)
     values = {}
     # door open: 0 = false, 1 = true ==> 1 door open, 0 door closed
     if 'motion' in closed_or_open:

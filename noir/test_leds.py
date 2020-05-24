@@ -8,18 +8,22 @@ and
 https://pinout.xyz/#
 """
 
+image_name = 'hi_withleds'
+image_name = 'hi_noleds'
+
+image_path = '/home/pi/'
+extension = '.jpg'
+your_addition = ''
+image_dest = image_path + image_name + str(your_addition) + extension
+print("Will save image to " + image_dest)
+
 from picamera import PiCamera
 import time
 import RPi.GPIO as GPIO
 
+
 LED = 16
 
-    # # Set Broadcom mode so we can address GPIO pins by number.
-    # GPIO.setmode(GPIO.BCM)
-    #     # Set up the door sensor pin.
-    # GPIO.setup(DOOR_SENSOR_PIN, GPIO.IN, pull_up_down = GPIO.PUD_UP)
-    #  # Set up the door sensor pin.
-    # GPIO.setup(DOOR_SENSOR_PIN, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 #GPIO.setmode(GPIO.BOARD)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(LED,GPIO.OUT)
@@ -35,13 +39,13 @@ GPIO.output(LED,GPIO.LOW)
 
 print("Camera LEDS going ON")
 GPIO.output(LED, GPIO.HIGH)
+if 'noleds' in image_name:
+    print("Camera LEDS going OFF")
+    GPIO.output(LED, GPIO.LOW)
 time.sleep(2)
 camera = PiCamera()
+camera.rotation = 180
 
-image_path = '/home/pi/hi'
-extension = '.jpg'
-your_addition = ''
-image_dest = image_path + str(your_addition) + extension
 print("Capturing image to " + image_dest)
 localtime = time.asctime( time.localtime(time.time()) )
 camera.annotate_text=localtime
@@ -63,3 +67,4 @@ time.sleep(2)
 #         GPIO.output(LED, GPIO.LOW)
 #         time.sleep(actual_timebetween)
 #camera.stop_preview()
+GPIO.cleanup() 
