@@ -181,6 +181,7 @@ if __name__ == "__main__":
 
 
     # clean up first!
+    # Could be that program complains that pin for led flash ring is already in use.
     print("Cleaning up GPIO board...")
     GPIO.cleanup()
 
