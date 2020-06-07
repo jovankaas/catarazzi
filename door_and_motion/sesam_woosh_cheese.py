@@ -173,7 +173,6 @@ if __name__ == "__main__":
         else:
             testing = False
 
-
     # Source:
     # https://medium.com/conectric-networks/playing-with-raspberry-pi-door-sensor-fun-ab89ad499964
 
@@ -181,6 +180,11 @@ if __name__ == "__main__":
     GPIO.setmode(GPIO.BCM)
 
 
+    # clean up first!
+    print("Cleaning up GPIO board...")
+    GPIO.cleanup()
+
+    print("Setting up pins...")
     # This is the GPIO pin number we have one of the door sensor
     # wires attached to, the other should be attached to a ground pin.
     DOOR_SENSOR_PIN = 18
@@ -223,5 +227,6 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, cleanup)
 
 
+    print("Starting door and motion detectors...")
     check_sesam_woosh(led=LED)
 

@@ -9,7 +9,7 @@ https://pinout.xyz/#
 """
 
 image_name = 'hi_withleds'
-image_name = 'hi_noleds'
+#image_name = 'hi_noleds'
 
 image_path = '/home/pi/'
 extension = '.jpg'
