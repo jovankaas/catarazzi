@@ -80,8 +80,8 @@ def check_sesam_woosh(led=None):
         #if isOpen == 0: # catflap moved past sensor! door sensor "closed"
         # isOpen = False # for testing
         if isOpen: # catflap did not move
-            #print("Door did not move")
-            #time.sleep(0.1)
+            print("Door did not move")
+            time.sleep(0.1)
             pass
         else: # door sensor closed
             # State change! Start detecting motion

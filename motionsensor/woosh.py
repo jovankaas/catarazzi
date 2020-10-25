@@ -43,6 +43,10 @@ signal.signal(signal.SIGINT, cleanup)
 while True:
     old_state = current_state
     current_state = GPIO.input(pir_sensor)
+    print("GPIO pin %s is %s" % (pir_sensor, current_state))
+    time.sleep(3)
+    current_state = GPIO.input(pir_sensor)
+    print("GPIO pin %s is %s" % (pir_sensor, current_state))
     if current_state == 1 and (current_state != old_state):
         # PIR is detecting movement!
         print("GPIO pin %s is %s" % (pir_sensor, current_state))
